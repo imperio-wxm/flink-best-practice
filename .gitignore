@@ -1,0 +1,12 @@
+
+\.idea/
+
+logs/
+
+flink-simple-demo/target/
+
+flink-simple-demo/dependency-reduced-pom\.xml
+
+flink-simple-demo/flink-simple-demo\.iml
+
+flink-best-practice\.iml
