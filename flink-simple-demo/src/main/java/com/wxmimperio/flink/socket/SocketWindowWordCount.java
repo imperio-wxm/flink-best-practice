@@ -10,6 +10,10 @@ import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.logging.SimpleFormatter;
+
 public class SocketWindowWordCount {
     private static final Logger LOG = LoggerFactory.getLogger(SocketWindowWordCount.class);
 
@@ -17,10 +21,10 @@ public class SocketWindowWordCount {
 
         // get the execution environment
         // 本地运行
-        //final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         // 远程提交
-        final StreamExecutionEnvironment env = StreamExecutionEnvironment
-                .createRemoteEnvironment("192.168.1.110",8081,"E:\\coding\\github\\flink-best-practice\\flink-simple-demo\\target\\flink-simple-demo-1.0-SNAPSHOT.jar");
+        /*final StreamExecutionEnvironment env = StreamExecutionEnvironment
+                .createRemoteEnvironment("192.168.1.110",8081,"E:\\coding\\github\\flink-best-practice\\flink-simple-demo\\target\\flink-simple-demo-1.0-SNAPSHOT.jar");*/
 
         // get input data by connecting to the socket
         // 先启动服务端nc -l 9999
@@ -37,7 +41,7 @@ public class SocketWindowWordCount {
                     }
                 })
                 .keyBy("word")
-                .timeWindow(Time.seconds(1), Time.seconds(1))
+                .timeWindow(Time.seconds(5), Time.seconds(5))
                 .reduce(new ReduceFunction<WordWithCount>() {
                     @Override
                     public WordWithCount reduce(WordWithCount a, WordWithCount b) {
@@ -46,10 +50,12 @@ public class SocketWindowWordCount {
                 });
 
         // print the results with a single thread, rather than in parallel
+        final SimpleDateFormat simpleFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         windowCounts.map(new MapFunction<WordWithCount, Object>() {
             @Override
             public Object map(WordWithCount wordWithCount) throws Exception {
                 LOG.info(wordWithCount.toString() + " map fun!!!");
+                System.out.println(wordWithCount.toString() + " map fun!!!" + simpleFormatter.format(new Date()));
                 return wordWithCount;
             }
         }).print().setParallelism(1);
