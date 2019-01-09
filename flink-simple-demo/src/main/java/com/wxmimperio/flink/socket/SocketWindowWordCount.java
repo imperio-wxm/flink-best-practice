@@ -28,7 +28,7 @@ public class SocketWindowWordCount {
 
         // get input data by connecting to the socket
         // 先启动服务端nc -l 9999
-        DataStream<String> text = env.socketTextStream("10.1.8.209", 9999, "\n");
+        DataStream<String> text = env.socketTextStream("localhost", 9999, "\n");
 
         // parse the data, group it, window it, and aggregate the counts
         final DataStream<WordWithCount> windowCounts = text
