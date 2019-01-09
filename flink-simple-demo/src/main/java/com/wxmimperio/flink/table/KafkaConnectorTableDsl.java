@@ -1,5 +1,7 @@
 package com.wxmimperio.flink.table;
 
+import org.apache.avro.Schema;
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.typeinfo.Types;
@@ -18,6 +20,8 @@ import org.apache.flink.table.descriptors.Avro;
 import org.apache.flink.table.descriptors.Kafka;
 import org.apache.flink.types.Row;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
@@ -25,10 +29,7 @@ public class KafkaConnectorTableDsl {
 
     public static void main(String[] args) throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        StateBackend stateBackend = new FsStateBackend("file:///D:/d_backup/github/flink-best-practice/checkpoint",false);
-        env.enableCheckpointing(1000 * 5);
-        env.setStateBackend(stateBackend);
-        env.setRestartStrategy(RestartStrategies.fallBackRestart());
+        env.enableCheckpointing(3000 * 10);
 
        /* final StreamExecutionEnvironment env = StreamExecutionEnvironment
                 .createRemoteEnvironment("10.1.8.210", 8081, "D:\\d_backup\\github\\flink-best-practice\\flink-simple-demo\\target\\flink-simple-demo-1.0-SNAPSHOT.jar");
@@ -38,54 +39,50 @@ public class KafkaConnectorTableDsl {
         env.setStateBackend(stateBackend);*/
 
         Properties properties = new Properties();
-        properties.setProperty("bootstrap.servers", "10.174.20.33:9092");
-        properties.setProperty("group.id", "test");
-        String schenaStr = "{\"type\":\"record\",\"name\":\"rtc_warning_gmys\",\"namespace\":\"com.sdo.dw.rtc\",\"doc\":\"rtc_warning_gmys\",\"fields\":[{\"name\":\"table_name\",\"type\":[\"string\",\"null\"],\"doc\":\"告警源表\",\"size\":\"0\"},{\"name\":\"character_id\",\"type\":[\"string\",\"null\"],\"doc\":\"角色ID\",\"size\":\"0\"},{\"name\":\"area_id\",\"type\":[\"int\",\"null\"],\"doc\":\"区ID\",\"size\":\"0\"},{\"name\":\"group_id\",\"type\":[\"int\",\"null\"],\"doc\":\"服ID\",\"size\":\"0\"},{\"name\":\"platform\",\"type\":[\"int\",\"null\"],\"doc\":\"平台ID\",\"size\":\"0\"},{\"name\":\"character_level\",\"type\":[\"int\",\"null\"],\"doc\":\"角色等级\",\"size\":\"0\"},{\"name\":\"warn_column\",\"type\":[\"string\",\"null\"],\"doc\":\"设置告警的字段\",\"size\":\"0\"},{\"name\":\"current_value\",\"type\":[\"string\",\"null\"],\"doc\":\"当前值\",\"size\":\"0\"},{\"name\":\"total_value\",\"type\":[\"string\",\"null\"],\"doc\":\"累计总值\",\"size\":\"0\"},{\"name\":\"event_time\",\"type\":[\"string\",\"null\"],\"doc\":\"数据源时间\",\"size\":\"0\"},{\"name\":\"warn_type\",\"type\":[\"string\",\"null\"],\"doc\":\"异常类型\",\"size\":\"0\"}],\"last_update_time\":\"Tue Dec 11 15:36:03 CST 2018\"}";
+        properties.setProperty("bootstrap.servers", "192.168.1.110:9092");
+        properties.setProperty("group.id", "flink-test");
+        String path = "E:\\coding\\github\\flink-best-practice\\flink-simple-demo\\src\\main\\resources\\test.avro";
+        Schema schema = new Schema.Parser().parse(new FileInputStream(new File(path)));
         //Schema schema = new Schema.Parser().parse(schenaStr);
 
         StreamTableEnvironment tableEnv = TableEnvironment.getTableEnvironment(env);
         tableEnv.connect(new Kafka()
                 .properties(properties)
                 .startFromGroupOffsets()
-                .topic("rtc_warning_gmys")
+                .topic("stream-test1")
                 .version("0.11")
         ).withSchema(new org.apache.flink.table.descriptors.Schema()
-                .field("table_name", Types.STRING)
                 .field("character_id", Types.STRING)
-                .field("area_id", Types.INT)
                 .field("group_id", Types.INT)
-                .field("platform", Types.INT)
-                .field("character_level", Types.INT)
-                .field("warn_column", Types.STRING)
-                .field("current_value", Types.STRING)
-                .field("total_value", Types.STRING)
+                .field("level", Types.INT)
+                .field("experience", Types.INT)
                 .field("event_time", Types.STRING)
-                .field("warn_type", Types.STRING)
         ).withFormat(
-                new Avro().avroSchema(schenaStr)
-        ).inAppendMode().registerTableSource("rtc_warning_gmys");
+                new Avro().avroSchema(schema.toString())
+        ).inAppendMode().registerTableSource("stream_test1");
 
         // scan table
         //Table table = tableEnv.scan("rtc_warning_gmys");
 
         // query table
-        Table table = tableEnv.sqlQuery("select sum(area_id) from rtc_warning_gmys where area_id = 1 group by character_id,area_id,group_id,platform");
+        Table table = tableEnv.sqlQuery(
+                "select sum(experience) from stream_test1 where character_id = '1' and group_id = 1 group by SUBSTRING(event_time,1,10),group_id"
+        );
 
         //   convert the Table into a retract DataStream of Row.
         //   A retract stream of type X is a DataStream<Tuple2<Boolean, X>>.
         //   The boolean field indicates the type of the change.
         //   True is INSERT, false is DELETE.
         DataStream<Tuple2<Boolean, Row>> dsRow = tableEnv.toRetractStream(table, Row.class);
-        dsRow.map(new MapFunction<Tuple2<Boolean, Row>, Object>() {
+        dsRow.filter(new FilterFunction<Tuple2<Boolean, Row>>() {
             @Override
-            public Object map(Tuple2<Boolean, Row> booleanRowTuple2) throws Exception {
+            public boolean filter(Tuple2<Boolean, Row> booleanRowTuple2) throws Exception {
                 if (booleanRowTuple2.f0) {
-                    System.out.println(booleanRowTuple2.f1.toString());
-                    return booleanRowTuple2.f1;
+                    return (int) booleanRowTuple2.f1.getField(0) > 10;
                 }
-                return null;
+                return false;
             }
-        });
+        }).print().setParallelism(1);
 
         env.execute("Kafka table select");
     }
