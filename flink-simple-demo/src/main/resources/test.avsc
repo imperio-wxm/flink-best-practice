@@ -1,0 +1,28 @@
+{
+    "namespace": "com.sdo.dw.rtc",
+    "type": "record",
+    "name": "test_table",
+    "doc": "test_table",
+    "fields": [
+        {
+            "name": "character_id",
+            "type": "string"
+        },
+        {
+            "name": "group_id",
+            "type": "int"
+        },
+        {
+            "name": "level",
+            "type": "int"
+        },
+        {
+            "name": "experience",
+            "type": "int"
+        },
+        {
+            "name": "event_time",
+            "type": "string"
+        }
+    ]
+}
