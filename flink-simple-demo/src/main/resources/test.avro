@@ -1,0 +1,27 @@
+{
+    "namespace": "wxmimperio.avro",
+    "type": "record",
+    "name": "message",
+    "fields": [
+        {
+            "name": "character_id",
+            "type": "string"
+        },
+        {
+            "name": "group_id",
+            "type": "int"
+        },
+        {
+            "name": "level",
+            "type": "int"
+        },
+        {
+            "name": "experience",
+            "type": "int"
+        },
+        {
+            "name": "event_time",
+            "type": "string"
+        }
+    ]
+}
