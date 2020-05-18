@@ -3,7 +3,6 @@ package com.wxmimperio.flink.table;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.table.api.Table;
-import org.apache.flink.table.api.TableEnvironment;
 import org.apache.flink.table.api.java.BatchTableEnvironment;
 import org.apache.flink.types.Row;
 
@@ -11,7 +10,7 @@ public class BatchExe {
 
     public static void main(String[] args) throws Exception {
         ExecutionEnvironment batchEnv = ExecutionEnvironment.getExecutionEnvironment();
-        BatchTableEnvironment tEnv = TableEnvironment.getTableEnvironment(batchEnv);
+        BatchTableEnvironment tEnv = BatchTableEnvironment.create(batchEnv);
 
         DataSet<BatchExe.MyData> csvInput = batchEnv.readCsvFile("D:\\d_backup\\github\\flink-best-practice\\flink-simple-demo\\src\\main\\resources\\test.csv")
                 .pojoType(BatchExe.MyData.class, "characterId", "groupId");
