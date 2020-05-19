@@ -84,6 +84,7 @@ public class FlinkWaterMark {
 
             @Override
             public long extractTimestamp(Tuple3<Long, String, Integer> element, long previousElementTimestamp) {
+                // 从消息中抽取eventTime
                 long timestamp = element.f0;
                 currentMaxTimestamp = Math.max(timestamp, currentMaxTimestamp);
                 return timestamp;
