@@ -112,6 +112,18 @@ public class BaseOperators {
         windowedStream.min(0);
         windowedStream.minBy(0);
 
+        // union
+        // Union of two or more data streams creating a new stream containing all the elements from all the streams.
+        DataStream<Tuple2<Long, Long>> stream01 = env.fromElements(Tuple2.of(1L, 3L));
+        DataStream<Tuple2<Long, Long>> stream02 = env.fromElements(Tuple2.of(1L, 5L));
+        DataStream<Tuple2<Long, Long>> stream03 = env.fromElements(Tuple2.of(1L, 7L));
+        stream01.union(stream02, stream03).print("union = ");
+
+        // Window Join
+
+
+
+
         env.execute("KeyedState");
     }
 }
