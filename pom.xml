@@ -11,6 +11,9 @@
     <modules>
         <module>flink-simple-demo</module>
         <module>flink-kafka-split</module>
+        <module>flink-state-faulttolerance</module>
+        <module>flink-time-characteristic</module>
+        <module>flink-operators</module>
     </modules>
 
     <name>flink-best-practice</name>
