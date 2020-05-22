@@ -8,7 +8,13 @@ import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
+import org.apache.flink.streaming.api.datastream.WindowedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
+import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
+import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
+import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;
 
 public class BaseOperators {
@@ -63,6 +69,48 @@ public class BaseOperators {
         });
         reduce.print("reduce = ");
 
+        // Fold
+        // @deprecated will be removed in a future version
+        // DataStream<String> fold = keyStream.fold();
+
+        // Aggregations
+        keyStream.sum(0).print("sum = ");
+        keyStream.min(0).print("min = ");
+        keyStream.minBy(0).print("minBy = ");
+
+        // Window
+        // Windows can be defined on already partitioned KeyedStreams
+        WindowedStream<Tuple2<Long, Long>, Tuple, TimeWindow> windowedStream = keyStream.window(TumblingProcessingTimeWindows.of(Time.seconds(1)));
+
+        // WindowAll
+        // Windows can be defined on regular DataStreams. Windows group all the stream events according to some characteristic
+        keyStream.windowAll(TumblingEventTimeWindows.of(Time.seconds(2)));
+
+        // Window Apply
+        // Applies a general function to the window as a whole. Below is a function that manually sums the elements of a window
+        windowedStream.apply(new WindowFunction<Tuple2<Long, Long>, Long, Tuple, TimeWindow>() {
+            @Override
+            public void apply(Tuple tuple, TimeWindow window, Iterable<Tuple2<Long, Long>> input, Collector<Long> out) throws Exception {
+                long sum = 0;
+                for (Tuple2<Long, Long> value : input) {
+                    sum += value.f1;
+                }
+                out.collect(sum);
+            }
+        }).print("window apply = ");
+
+        // window reduce
+        windowedStream.reduce(new ReduceFunction<Tuple2<Long, Long>>() {
+            @Override
+            public Tuple2<Long, Long> reduce(Tuple2<Long, Long> value1, Tuple2<Long, Long> value2) throws Exception {
+                return Tuple2.of(value1.f0 + value2.f0, value1.f1 + value2.f1);
+            }
+        }).print("window reduce = ");
+
+        // Aggregations on windows
+        windowedStream.sum(0);
+        windowedStream.min(0);
+        windowedStream.minBy(0);
 
         env.execute("KeyedState");
     }
