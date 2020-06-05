@@ -14,6 +14,7 @@
         <module>flink-state-faulttolerance</module>
         <module>flink-time-characteristic</module>
         <module>flink-operators</module>
+        <module>flink-streaming-files</module>
     </modules>
 
     <name>flink-best-practice</name>
