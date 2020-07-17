@@ -7,22 +7,14 @@ import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.DataStreamSource;
-import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.AssignerWithPunctuatedWatermarks;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
-import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor;
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor;
-import org.apache.flink.streaming.api.watermark.Watermark;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumerBase;
 import org.apache.flink.util.Collector;
 
-import javax.annotation.Nullable;
-import java.io.File;
-import java.io.FileInputStream;
 import java.util.Properties;
 
 public class FlinkKafkaWaterMark {
@@ -45,32 +37,18 @@ public class FlinkKafkaWaterMark {
                 "wxm_wk_test",
                 new SimpleStringSchema(),
                 properties
-        ).assignTimestampsAndWatermarks(new AssignerWithPunctuatedWatermarks<String>() {
-            @Nullable
-            @Override
-            public Watermark checkAndGetNextWatermark(String s, long l) {
-                if(l == Long.MIN_VALUE) {
-                    return null;
-                }
-                return JSON.parseObject(s).containsKey("event_time") ? new Watermark(l) : null;
-            }
-
-            @Override
-            public long extractTimestamp(String s, long l) {
-                return Long.parseLong(JSON.parseObject(s).getString("event_time"));
-            }
-        });
+        ).setStartFromTimestamp(1593704292000L);
 
         DataStream<String> dataStreamSource = env.addSource(myConsumer)
-                .setParallelism(3).rescale();
-        //.rescale()
-                /*.assignTimestampsAndWatermarks(new MyExtractor<String>(Time.seconds(5)) {
+                .setParallelism(3)
+                .rescale()
+                .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<String>(Time.seconds(5)) {
                     @Override
                     public long extractTimestamp(String s) {
                         JSONObject jsonObject = JSON.parseObject(s);
                         return Long.parseLong(jsonObject.getString("event_time"));
                     }
-                });*/
+                });
 
         DataStream<String> op1 = dataStreamSource.process(new ProcessFunction<String, String>() {
             @Override
@@ -79,7 +57,7 @@ public class FlinkKafkaWaterMark {
                 jsonObject.put("add_col1", "process1");
                 collector.collect(jsonObject.toJSONString());
             }
-        }).name("process1").setParallelism(2);
+        }).name("process1").setParallelism(3);
 
         DataStream<String> op2 = op1.process(new ProcessFunction<String, String>() {
             @Override
