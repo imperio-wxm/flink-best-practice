@@ -56,7 +56,7 @@ public class BiliProtoWriteSupport<T extends MessageOrBuilder> extends WriteSupp
     public static final String PB_SPECS_COMPLIANT_WRITE = "parquet.proto.writeSpecsCompliant";
 
     private boolean writeSpecsCompliant = false;
-    private ValidatingRecordConsumer recordConsumer;
+    private RecordConsumer recordConsumer;
     private Class<? extends Message> protoMessage;
     private MessageWriter messageWriter;
     private Descriptor messageDescriptor;
@@ -119,7 +119,7 @@ public class BiliProtoWriteSupport<T extends MessageOrBuilder> extends WriteSupp
 
     @Override
     public void prepareForWrite(RecordConsumer recordConsumer) {
-        this.recordConsumer = new ValidatingRecordConsumer(recordConsumer, rootSchema);
+        this.recordConsumer = recordConsumer;
     }
 
     @Override
