@@ -34,14 +34,10 @@ public class FlinkKafkaWaterMark {
 
         FlinkKafkaConsumerBase<String> myConsumer = new FlinkKafkaConsumer<>(
                 /*"wxm_wk_test01",*/
-                "wxm_wk_test",
+                "wxm_wk_test01",
                 new SimpleStringSchema(),
                 properties
-        ).setStartFromTimestamp(1593704292000L);
-
-        DataStream<String> dataStreamSource = env.addSource(myConsumer)
-                .setParallelism(3)
-                .rescale()
+        ).setStartFromTimestamp(1593704292000L)
                 .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<String>(Time.seconds(5)) {
                     @Override
                     public long extractTimestamp(String s) {
@@ -49,6 +45,9 @@ public class FlinkKafkaWaterMark {
                         return Long.parseLong(jsonObject.getString("event_time"));
                     }
                 });
+
+        DataStream<String> dataStreamSource = env.addSource(myConsumer)
+                .setParallelism(3);
 
         DataStream<String> op1 = dataStreamSource.process(new ProcessFunction<String, String>() {
             @Override
@@ -66,7 +65,7 @@ public class FlinkKafkaWaterMark {
                 jsonObject.put("add_col2", "process2");
                 collector.collect(jsonObject.toJSONString());
             }
-        }).name("process2").setParallelism(3);
+        }).name("process2").setParallelism(2);
 
 
         op2.print().setParallelism(1).name("sink");
