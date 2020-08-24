@@ -70,7 +70,7 @@ public class FlinkKafkaWaterMark {
                 jsonObject.put("add_col2", "process2");
                 collector.collect(jsonObject.toJSONString());
             }
-        }).name("process2").setParallelism(3);
+        }).name("process2").setParallelism(2);
 
 
         op2.print().setParallelism(1).name("sink");
