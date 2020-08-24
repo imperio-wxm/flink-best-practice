@@ -29,7 +29,9 @@ public class FlinkKafkaWaterMark {
         env.enableCheckpointing(20000);
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
-        env.getConfig().setAutoWatermarkInterval(1000);
+        env.getConfig().setUseSnapshotCompression(true);
+
+        env.getConfig().setAutoWatermarkInterval(5000);
 
         Properties properties = new Properties();
         properties.setProperty("bootstrap.servers", "192.168.1.110:9092");
@@ -44,14 +46,13 @@ public class FlinkKafkaWaterMark {
 
         DataStream<String> dataStreamSource = env.addSource(myConsumer)
                 .setParallelism(5)
-                .rebalance()
-                .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<String>(Time.seconds(5)) {
+                .assignTimestampsAndWatermarks(new MyWatermark<String>(Time.minutes(3), Time.seconds(30)) {
                     @Override
                     public long extractTimestamp(String s) {
                         JSONObject jsonObject = JSON.parseObject(s);
                         return Long.parseLong(jsonObject.getString("event_time"));
                     }
-                }).rescale();
+                });
 
         DataStream<String> op1 = dataStreamSource.process(new ProcessFunction<String, String>() {
             @Override
