@@ -19,16 +19,15 @@ package com.wxmimperio.flink.writer;
  * under the License.
  */
 
+import com.esotericsoftware.minlog.Log;
 import com.google.protobuf.*;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.twitter.elephantbird.util.Protobufs;
-import com.wxmimperio.flink.bean.AppInfocProtoFlink;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.parquet.hadoop.BadConfigurationException;
 import org.apache.parquet.hadoop.api.WriteSupport;
 import org.apache.parquet.io.InvalidRecordException;
-import org.apache.parquet.io.ValidatingRecordConsumer;
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.io.api.RecordConsumer;
 import org.apache.parquet.proto.ProtoReadSupport;
@@ -60,7 +59,6 @@ public class BiliProtoWriteSupport<T extends MessageOrBuilder> extends WriteSupp
     private Class<? extends Message> protoMessage;
     private MessageWriter messageWriter;
     private Descriptor messageDescriptor;
-    private MessageType rootSchema;
 
     public BiliProtoWriteSupport() {
     }
@@ -96,25 +94,28 @@ public class BiliProtoWriteSupport<T extends MessageOrBuilder> extends WriteSupp
      */
     @Override
     public void write(byte[] record) {
-        Message msg = null;
+        Message msg = parserProtobuf(record);
+        if (msg == null || msg.toByteString().isEmpty()) {
+            return;
+        }
         try {
-            byte[] buffer = record;
             recordConsumer.startMessage();
-            msg = DynamicMessage.newBuilder(messageDescriptor).mergeFrom(buffer).build();
             messageWriter.writeTopLevelMessage(msg);
             recordConsumer.endMessage();
-        } catch (InvalidProtocolBufferException e) {
-            LOG.warn("Invalid Protocol message header", e);
         } catch (Exception e) {
-            LOG.warn("Can not write message = %s", e);
+            LOG.warn(String.format("Can not write message = %s", msg), e);
             //throw e;
         }
     }
 
-    private byte[] genMsg(AppInfocProtoFlink.AppEvent appEvent) throws Exception {
-        byte[] buffer = new byte[appEvent.getSerializedSize()];
-        appEvent.writeTo(CodedOutputStream.newInstance(buffer));
-        return buffer;
+    private Message parserProtobuf(byte[] record) {
+        Message msg = null;
+        try {
+            msg = DynamicMessage.newBuilder(messageDescriptor).mergeFrom(record).build();
+        } catch (Exception e) {
+            LOG.warn("Can not parser protobuf.", e);
+        }
+        return msg;
     }
 
     @Override
@@ -142,7 +143,7 @@ public class BiliProtoWriteSupport<T extends MessageOrBuilder> extends WriteSupp
 
         writeSpecsCompliant = configuration.getBoolean(PB_SPECS_COMPLIANT_WRITE, writeSpecsCompliant);
         messageDescriptor = Protobufs.getMessageDescriptor(protoMessage);
-        rootSchema = new ProtoSchemaConverter(writeSpecsCompliant).convert(protoMessage);
+        MessageType rootSchema = new ProtoSchemaConverter(writeSpecsCompliant).convert(protoMessage);
         Descriptor messageDescriptor = Protobufs.getMessageDescriptor(protoMessage);
         validatedMapping(messageDescriptor, rootSchema);
 

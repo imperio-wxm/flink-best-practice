@@ -112,6 +112,26 @@ public class FlinkProtoParquetWriter<T extends MessageOrBuilder> extends Parquet
         }
 
         @Override
+        public Builder<T> enableDictionaryEncoding() {
+            return super.enableDictionaryEncoding();
+        }
+
+        @Override
+        public Builder<T> enableValidation() {
+            return super.enableValidation();
+        }
+
+        @Override
+        public Builder<T> enablePageWriteChecksum() {
+            return super.enablePageWriteChecksum();
+        }
+
+        @Override
+        public Builder<T> config(String property, String value) {
+            return super.config(property, value);
+        }
+
+        @Override
         public Builder<T> withCompressionCodec(CompressionCodecName codecName) {
             return super.withCompressionCodec(codecName);
         }

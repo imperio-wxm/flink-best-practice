@@ -27,6 +27,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+import static org.apache.parquet.column.ParquetProperties.WriterVersion.PARQUET_2_0;
+
 /**
  * Convenience builder to create {@link ParquetWriterFactory} instances for the different Avro types.
  */
@@ -47,8 +49,12 @@ public class ParquetProtoWriters {
 
     private static <T> ParquetWriter<T> createProtoParquetWriter(Class<T> protoClass, OutputFile out) throws IOException {
         return FlinkProtoParquetWriter.<T>builder(out)
+                .withRowGroupSize((1024 * 1024) / 5)
                 .withProtoMessage(protoClass)
                 .withCompressionCodec(CompressionCodecName.GZIP)
+                .enableValidation()
+                .enablePageWriteChecksum()
+                .enableDictionaryEncoding()
                 .build();
     }
 }

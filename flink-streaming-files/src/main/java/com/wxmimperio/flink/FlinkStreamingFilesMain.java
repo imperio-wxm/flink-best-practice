@@ -2,6 +2,7 @@ package com.wxmimperio.flink;
 
 import com.wxmimperio.flink.bean.AppInfocProtoFlink;
 import com.wxmimperio.flink.writer.ParquetProtoWriters;
+import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -18,8 +19,9 @@ public class FlinkStreamingFilesMain {
     public static void main(String[] args) throws Exception {
 
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(1);
+        env.setParallelism(2);
         env.enableCheckpointing(10 * 1000);
+        env.getConfig().setRestartStrategy(RestartStrategies.noRestart());
 
 
         DataStream<byte[]> sourceDs = env.addSource(new DynamicConfigSource());
@@ -48,7 +50,7 @@ public class FlinkStreamingFilesMain {
             while (isRunning) {
                 ctx.collect(getData2());
                 idx++;
-                TimeUnit.SECONDS.sleep(1);
+                //TimeUnit.SECONDS.sleep(1);
             }
         }
 
