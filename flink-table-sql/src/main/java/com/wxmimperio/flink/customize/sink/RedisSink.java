@@ -2,12 +2,17 @@ package com.wxmimperio.flink.customize.sink;
 
 import com.wxmimperio.flink.customize.function.RowDataPrintFunction;
 import org.apache.flink.configuration.ReadableConfig;
+import org.apache.flink.table.api.DataTypes;
 import org.apache.flink.table.connector.ChangelogMode;
 import org.apache.flink.table.connector.sink.DynamicTableSink;
 import org.apache.flink.table.connector.sink.SinkFunctionProvider;
 import org.apache.flink.table.types.DataType;
+import org.apache.flink.types.RowKind;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.apache.flink.table.api.DataTypes.FIELD;
+import static org.apache.flink.table.api.DataTypes.ROW;
 
 /**
  * Created with IntelliJ IDEA.
@@ -29,7 +34,14 @@ public class RedisSink implements DynamicTableSink {
 
     @Override
     public ChangelogMode getChangelogMode(ChangelogMode changelogMode) {
-        return changelogMode;
+        ChangelogMode.Builder builder = ChangelogMode.newBuilder();
+        for (RowKind kind : changelogMode.getContainedKinds()) {
+            if (kind != RowKind.UPDATE_BEFORE) {
+                builder.addContainedKind(kind);
+            }
+        }
+        return builder.build();
+        //return changelogMode;
     }
 
     @Override

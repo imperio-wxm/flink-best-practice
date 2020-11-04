@@ -1,9 +1,11 @@
 package com.wxmimperio.flink.customize.function;
 
 import com.wxmimperio.flink.customize.sink.RedisSink;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.ReadableConfig;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
+import org.apache.flink.table.data.GenericRowData;
 import org.apache.flink.table.data.RowData;
 import org.apache.flink.table.connector.sink.DynamicTableSink.DataStructureConverter;
 import org.apache.flink.table.types.DataType;
@@ -69,10 +71,14 @@ public class RowDataPrintFunction extends RichSinkFunction<RowData> {
 
     @Override
     public void invoke(RowData rowData, Context context) throws Exception {
-        RowKind rowKind = rowData.getRowKind();
         Row data = (Row) converter.toExternal(rowData);
+        System.out.println("=== " + rowData + ", RowKind = " + rowData.getRowKind());
+       /* RowKind rowKind = rowData.getRowKind();
+        Row data = (Row) converter.toExternal(rowData);
+        assert data != null;
+        LOG.info(data.getField(0) + "");
         LOG.info(data + "");
-        LOG.info(rowKind + "");
+        LOG.info(rowKind + "");*/
        /* if (rowKind.equals(RowKind.UPDATE_AFTER) || rowKind.equals(RowKind.INSERT)) {
             String keyTemplate = options.get(KEY_TEMPLATE);
             if (Objects.isNull(keyTemplate) || keyTemplate.trim().length() == 0) {

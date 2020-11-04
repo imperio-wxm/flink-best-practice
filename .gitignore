@@ -10,3 +10,4 @@ flink-simple-demo/dependency-reduced-pom\.xml
 flink-simple-demo/flink-simple-demo\.iml
 
 flink-best-practice\.iml
+/flink-time-characteristic/target/

@@ -32,13 +32,23 @@ public class RedisSinkMain {
         EnvironmentSettings environmentSettings = EnvironmentSettings.newInstance().useBlinkPlanner().inStreamingMode().build();
         StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env, environmentSettings);
         Configuration configuration = tableEnv.getConfig().getConfiguration();
-        configuration.set(ExecutionCheckpointingOptions.CHECKPOINTING_MODE, CheckpointingMode.EXACTLY_ONCE);
-        configuration.set(ExecutionCheckpointingOptions.CHECKPOINTING_INTERVAL, Duration.ofSeconds(10));
+        //configuration.set(ExecutionCheckpointingOptions.CHECKPOINTING_MODE, CheckpointingMode.EXACTLY_ONCE);
+        //configuration.set(ExecutionCheckpointingOptions.CHECKPOINTING_INTERVAL, Duration.ofSeconds(10));
 
         String sql = "CREATE TABLE wxm_test (`userss` BIGINT, `product` BIGINT, `amount` BIGINT) WITH ('connector'='datagen','rows-per-second'='1')";
         tableEnv.executeSql(sql);
 
-        sql = "CREATE TABLE redis (info_index BIGINT,courier_id BIGINT,city_id BIGINT" +
+        /*sql = "CREATE TABLE redis (info_index BIGINT,courier_id BIGINT,city_id BIGINT" +
+                ") WITH (" +
+                "'connector'='wxm-redis'," +
+                "'hostPort'='xxx'," +
+                "'keyType'='hash'," +
+                "'keyTemplate'='test2_${city_id}'," +
+                "'fieldTemplate'='test2_${courier_id}'," +
+                "'valueNames'='info_index,city_id'," +
+                "'expireTime'='50000')";*/
+
+        sql = "CREATE TABLE redis (info_index BIGINT" +
                 ") WITH (" +
                 "'connector'='wxm-redis'," +
                 "'hostPort'='xxx'," +
@@ -52,13 +62,15 @@ public class RedisSinkMain {
 
         Table table2 = tableEnv.sqlQuery("select * from wxm_test");
 
-        Table resultTable = tableEnv.sqlQuery("select `userss` as info_index,`product` as courier_id,`amount` as city_id from " + table2);
+        // tableEnv.toRetractStream(table2, Row.class).print("===== ");
+
+        Table resultTable = tableEnv.sqlQuery("select `userss` as info_index,1 as courier_id,`amount` as city_id from " + table2);
         TupleTypeInfo<Tuple3<Long, Long, Long>> tupleType = new TupleTypeInfo<>(
                 Types.LONG(),
                 Types.LONG(),
                 Types.LONG());
         tableEnv.toRetractStream(resultTable, tupleType).print("===== ");
-        tableEnv.executeSql("INSERT INTO redis SELECT info_index,courier_id,city_id FROM " + resultTable);
+        tableEnv.executeSql("INSERT INTO redis SELECT count(courier_id) as info_index FROM " + resultTable + " group by courier_id");
         env.execute("");
     }
 }
