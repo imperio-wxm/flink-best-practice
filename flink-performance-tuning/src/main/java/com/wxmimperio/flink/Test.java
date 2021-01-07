@@ -7,20 +7,20 @@ import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.types.Row;
 
-
 /**
  * Created with IntelliJ IDEA.
  *
  * @author weiximing
  * @version 1.0.0
- * @className FlinkMiniBatch.java
- * @description This is the description of FlinkMiniBatch.java
- * @createTime 2021-01-05 12:22:00
+ * @className Test.java
+ * @description This is the description of Test.java
+ * @createTime 2021-01-06 20:39:00
  */
-public class FlinkMiniBatch {
+public class Test {
 
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
+        conf.setString("rest.bind-port", "8082");
 
         StreamExecutionEnvironment bsEnv = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(conf);
         bsEnv.setParallelism(2);
@@ -71,9 +71,8 @@ public class FlinkMiniBatch {
 
         //String query = "select precise_distinct(age),age from `user` group by age";
 
-        String query = "select precise_distinct(ARRAY[cast(age as varchar),name]),age,name from `user` group by TUMBLE(proctime(), INTERVAL '10' SECOND),age,name";
+        String query = "select count(distinct age),age,name from `user` group by TUMBLE(proctime(), INTERVAL '10' SECOND),age,name";
 
-        //query = "select array[cast(age as varchar),name] from `user`";
         Table table2 = bsTableEnv.sqlQuery(query);
         bsTableEnv.toRetractStream(table2, Row.class).print();
         bsEnv.execute();
