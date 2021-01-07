@@ -8,6 +8,7 @@ import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,20 +43,32 @@ public class SimpleDemo {
 
         String words = "hello flink hello blink hello muscle hello power";
         List<ApiExpression> wordList = Arrays.stream(words.split("\\W+"))
-                .map(word -> row(word, 1))
+                .map(word -> row(word, 1, System.currentTimeMillis()))
                 .collect(Collectors.toList());
 
         Table table = bsTableEnv.fromValues(
                 DataTypes.ROW(
                         DataTypes.FIELD("word", DataTypes.STRING().notNull()),
-                        DataTypes.FIELD("frequency", DataTypes.INT().notNull())
+                        DataTypes.FIELD("frequency", DataTypes.INT().notNull()),
+                        DataTypes.FIELD("time_key", DataTypes.BIGINT().notNull())
                 ), wordList);
 
         table.printSchema();
         bsTableEnv.createTemporaryView("word_count", table);
 
         //执行查询
-        Table table2 = bsTableEnv.sqlQuery("select word, frequency from word_count");
+        // UNIX_TIMESTAMP(string1[, string2])
+        String sql = "select word, frequency, time_key /1000 from word_count";
+
+        //sql = "select DATE_FORMAT(now(),'yyyy-MM-dd HH:mm:ss')";
+
+        //sql = "select HOUR(TO_TIMESTAMP('2020-11-18 11:23:00'))";
+
+        // sql = "select CHAR_LENGTH(cast(1606287574456 as varchar)) = 13";
+
+        sql = "select IS_NUMBER('1606287574456')";
+
+        Table table2 = bsTableEnv.sqlQuery(sql);
         table2.execute().print();
 
         // 表的标识符（catalog，dbName，tableName）
