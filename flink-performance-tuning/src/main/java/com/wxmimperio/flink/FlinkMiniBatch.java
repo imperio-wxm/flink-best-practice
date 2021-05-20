@@ -21,9 +21,11 @@ public class FlinkMiniBatch {
 
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
+        conf.setString("env.java.opts","-XX:+UseG1GC -XX:ParallelGCThreads=10 -XX:MaxGCPauseMillis=100");
+        conf.setString("jobmanager.web.port","8085");
 
         StreamExecutionEnvironment bsEnv = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(conf);
-        bsEnv.setParallelism(2);
+        //bsEnv.setParallelism(2);
         EnvironmentSettings bsSettings = EnvironmentSettings.newInstance()
                 // 启用新的blink解析
                 .useBlinkPlanner()
@@ -31,14 +33,12 @@ public class FlinkMiniBatch {
                 .build();
         StreamTableEnvironment bsTableEnv = StreamTableEnvironment.create(bsEnv, bsSettings);
 
-        Configuration configuration = bsTableEnv.getConfig().getConfiguration();
-
-        //configuration.setString("table.exec.mini-batch.enabled", "true");
-        //configuration.setString("table.exec.mini-batch.allow-latency", "5 s");
-        //configuration.setString("table.exec.mini-batch.size", "5000");
-        //configuration.setString("table.optimizer.agg-phase-strategy", "TWO_PHASE");
-        //configuration.setString("table.optimizer.distinct-agg.split.enabled", "true");
-        //configuration.setString("table.optimizer.distinct-agg.split.bucket-num","5");
+        bsTableEnv.getConfig().getConfiguration().setString("table.exec.mini-batch.enabled", "true");
+        bsTableEnv.getConfig().getConfiguration().setString("table.exec.mini-batch.allow-latency", "5 s");
+        bsTableEnv.getConfig().getConfiguration().setString("table.exec.mini-batch.size", "5000");
+        bsTableEnv.getConfig().getConfiguration().setString("table.optimizer.agg-phase-strategy", "TWO_PHASE");
+        bsTableEnv.getConfig().getConfiguration().setString("table.optimizer.distinct-agg.split.enabled", "true");
+        //bsTableEnv.getConfig().getConfiguration().setString("table.optimizer.distinct-agg.split.bucket-num","5");
         //bsTableEnv.executeSql("create function precise_distinct as 'com.wxmimperio.flink.PreciseDistinct' language java");
 
 
@@ -71,7 +71,9 @@ public class FlinkMiniBatch {
 
         //String query = "select precise_distinct(age),age from `user` group by age";
 
-        String query = "select precise_distinct(ARRAY[cast(age as varchar),name]),age,name from `user` group by TUMBLE(proctime(), INTERVAL '10' SECOND),age,name";
+        String query = "select count(distinct age),name from `user` group by name";
+
+        query = "select count(distinct aa.key),aa.name,aa.age from (select CONCAT(name,cast(age as varchar)) as key,name as name,age as age from `user`) as aa group by aa.name,aa.age";
 
         //query = "select array[cast(age as varchar),name] from `user`";
         Table table2 = bsTableEnv.sqlQuery(query);

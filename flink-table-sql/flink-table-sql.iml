@@ -11,6 +11,12 @@
     </content>
     <orderEntry type="jdk" jdkName="1.8" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Maven: org.apache.flink:flink-connector-kafka_2.11:1.11.3" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.flink:flink-connector-kafka-base_2.11:1.11.3" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.kafka:kafka-clients:2.4.1" level="project" />
+    <orderEntry type="library" name="Maven: com.github.luben:zstd-jni:1.4.3-1" level="project" />
+    <orderEntry type="library" name="Maven: org.lz4:lz4-java:1.6.0" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.flink:force-shading:1.11.3" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: junit:junit:4.12" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.hamcrest:hamcrest-core:1.3" level="project" />
     <orderEntry type="library" name="Maven: redis.clients:jedis:3.3.0" level="project" />
@@ -20,7 +26,6 @@
     <orderEntry type="library" name="Maven: log4j:log4j:1.2.17" level="project" />
     <orderEntry type="library" name="Maven: org.apache.flink:flink-json:1.11.1" level="project" />
     <orderEntry type="library" name="Maven: com.google.code.findbugs:jsr305:1.3.9" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.flink:force-shading:1.11.1" level="project" />
     <orderEntry type="library" name="Maven: com.alibaba:fastjson:1.2.54" level="project" />
     <orderEntry type="library" name="Maven: org.apache.flink:flink-table-api-java-bridge_2.11:1.11.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.flink:flink-table-api-java:1.11.1" level="project" />
@@ -62,17 +67,12 @@
     <orderEntry type="library" name="Maven: com.github.scopt:scopt_2.11:3.5.0" level="project" />
     <orderEntry type="library" name="Maven: com.twitter:chill_2.11:0.7.6" level="project" />
     <orderEntry type="library" name="Maven: com.twitter:chill-java:0.7.6" level="project" />
-    <orderEntry type="library" name="Maven: org.lz4:lz4-java:1.6.0" level="project" />
     <orderEntry type="library" name="Maven: org.apache.flink:flink-shaded-guava:18.0-11.0" level="project" />
     <orderEntry type="library" name="Maven: org.apache.flink:flink-clients_2.11:1.11.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.flink:flink-optimizer_2.11:1.11.1" level="project" />
     <orderEntry type="library" name="Maven: commons-cli:commons-cli:1.3.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.flink:flink-runtime-web_2.11:1.11.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.flink:flink-shaded-netty:4.1.39.Final-11.0" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.flink:flink-connector-kafka_2.11:1.11.1" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.flink:flink-connector-kafka-base_2.11:1.11.1" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.kafka:kafka-clients:2.4.1" level="project" />
-    <orderEntry type="library" name="Maven: com.github.luben:zstd-jni:1.4.3-1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.flink:flink-connector-hive_2.11:1.11.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.flink:flink-core:1.11.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.flink:flink-annotations:1.11.1" level="project" />

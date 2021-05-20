@@ -1,0 +1,22 @@
+#==============================================================================
+#  Common
+#==============================================================================
+
+parallelism.default: 3
+
+#==============================================================================
+# Web Frontend
+#==============================================================================
+jobmanager.web.port: 8085
+
+# as cgroup is set to 10, limit the java gc thread to 10
+env.java.opts: -XX:+UseG1GC -XX:ParallelGCThreads=10 -XX:MaxGCPauseMillis=100
+
+web.timeout: 300000
+
+
+jobmanager.rpc.port: 6123
+jobmanager.heap.size: 3072m
+taskmanager.heap.size: 30720m
+taskmanager.numberOfTaskSlots: 10
+taskmanager.memory.preallocate: false

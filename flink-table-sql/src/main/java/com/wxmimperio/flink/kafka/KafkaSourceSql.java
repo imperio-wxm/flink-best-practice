@@ -18,7 +18,8 @@ import org.apache.flink.types.Row;
  */
 public class KafkaSourceSql {
     public static void main(String[] args) throws Exception {
-        StreamExecutionEnvironment bsEnv = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(new Configuration());
+        //StreamExecutionEnvironment bsEnv = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(new Configuration());
+        StreamExecutionEnvironment bsEnv = StreamExecutionEnvironment.getExecutionEnvironment();
         bsEnv.setParallelism(1);
         EnvironmentSettings bsSettings = EnvironmentSettings.newInstance()
                 // 启用新的blink解析
@@ -32,18 +33,23 @@ public class KafkaSourceSql {
                 + "`age` INTEGER,"
                 + "`timestamp` BIGINT"
                 + ") WITH ("
-                + "'connector.type' = 'kafka',"
-                + "'connector.version' = 'universal',"
-                + "'connector.topic' = 'flink_sql_kafka',"
-                + "'connector.properties.bootstrap.servers' = '127.0.0.1:9092',"
-                + "'connector.properties.group.id' = 'flink_sql',"
-                + "'connector.startup-mode' = 'group-offsets',"
-                + "'format.type' = 'json',"
-                + "'update-mode' = 'append'"
+                + "'connector' = 'kafka',"
+                + "'topic' = 'flink_sql_kafka',"
+                + "'properties.bootstrap.servers' = '127.0.0.1:9092',"
+                + "'properties.group.id' = 'flink_sql',"
+                + "'scan.startup.mode' = 'group-offsets',"
+                + "'format' = 'json'"
                 + ")";
+
+        /*'connector' = 'kafka',
+        'topic' = 'user_behavior',
+        'properties.bootstrap.servers' = 'localhost:9092',
+        'properties.group.id' = 'testGroup',
+        'format' = 'csv',
+        'scan.startup.mode' = 'earliest-offset'*/
         bsTableEnv.executeSql(kafkaSourceDDL);
 
-        String query = "select count(age),name from `user` group by TUMBLE(CURRENT_DATE, INTERVAL '1' DAY),name";
+        String query = "select * from `user`";
 
         Table table2 = bsTableEnv.sqlQuery(query);
         bsTableEnv.toRetractStream(table2, Row.class).print();

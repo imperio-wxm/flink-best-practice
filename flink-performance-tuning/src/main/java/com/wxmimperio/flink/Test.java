@@ -19,6 +19,9 @@ import org.apache.flink.types.Row;
 public class Test {
 
     public static void main(String[] args) throws Exception {
+
+        System.out.println(String.valueOf(null));
+
         Configuration conf = new Configuration();
         conf.setString("rest.bind-port", "8082");
 
@@ -71,7 +74,7 @@ public class Test {
 
         //String query = "select precise_distinct(age),age from `user` group by age";
 
-        String query = "select count(distinct age),age,name from `user` group by TUMBLE(proctime(), INTERVAL '10' SECOND),age,name";
+        String query = "select count(distinct age),name from `user` group by TUMBLE(proctime(), INTERVAL '10' SECOND),name";
 
         Table table2 = bsTableEnv.sqlQuery(query);
         bsTableEnv.toRetractStream(table2, Row.class).print();

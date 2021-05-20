@@ -35,6 +35,7 @@ public class BaseOperators {
         });
         map.print("map = ");
 
+
         // FlatMap
         DataStream<Long> flatMap = map.flatMap(new FlatMapFunction<Tuple2<Long, Long>, Long>() {
             @Override

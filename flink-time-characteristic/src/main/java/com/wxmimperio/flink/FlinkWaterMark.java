@@ -48,7 +48,7 @@ public class FlinkWaterMark {
         // 这里为了便于理解，设置并行度为1,默认并行度是当前机器的cpu数量
         senv.setParallelism(1);
         // 指定数据源 从socket的9000端口接收数据，先进行了不合法数据的过滤
-        DataStream<String> sourceDs = senv.socketTextStream("10.1.8.210", 9999)
+        DataStream<String> sourceDs = senv.socketTextStream("127.0.0.1", 9999)
                 .filter(new FilterFunction<String>() {
                     @Override
                     public boolean filter(String line) throws Exception {
@@ -70,7 +70,7 @@ public class FlinkWaterMark {
         });
 
         // 设置Watermark的生成方式为Periodic Watermark，并实现他的两个函数getCurrentWatermark和extractTimestamp
-        DataStream<Tuple3<Long, String, Integer>> wordCount = wordDs.assignTimestampsAndWatermarks(new AssignerWithPeriodicWatermarks<Tuple3<Long, String, Integer>>() {
+        DataStream<Tuple3<Long, String, Integer>> wordCount = wordDs/*.assignTimestampsAndWatermarks(new AssignerWithPeriodicWatermarks<Tuple3<Long, String, Integer>>() {
             private Long currentMaxTimestamp = 0L;
             // 最大允许的消息延迟是5秒
             private final Long maxOutOfOrderness = 5000L;
@@ -91,7 +91,7 @@ public class FlinkWaterMark {
             }
             // 这里根据第二个元素 单词进行统计 时间窗口是30秒 最大延时是5秒，统计每个窗口单词出现的次数
             // 时间窗口是30秒
-        }).keyBy(1)
+        })*/.keyBy(1)
                 .timeWindow(Time.seconds(30))
                 .sum(2);
 

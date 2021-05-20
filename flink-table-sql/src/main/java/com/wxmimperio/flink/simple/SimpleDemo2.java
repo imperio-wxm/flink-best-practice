@@ -1,6 +1,5 @@
 package com.wxmimperio.flink.simple;
 
-import org.apache.commons.compress.utils.Lists;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.ApiExpression;
 import org.apache.flink.table.api.DataTypes;
@@ -24,7 +23,7 @@ import static org.apache.flink.table.api.Expressions.row;
  * @description This is the description of SimpleDemo.java
  * @createTime 2020-10-15 16:30:00
  */
-public class SimpleDemo {
+public class SimpleDemo2 {
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment bsEnv = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -40,6 +39,7 @@ public class SimpleDemo {
         // bsTableEnv.connect();
         // String createDDL = "";
         // bsTableEnv.executeSql(createDDL);
+
 
 
         String words = "hello";
